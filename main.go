@@ -1,8 +1,10 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
 )
 
 func main() {
@@ -11,5 +13,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("URL:", os.Args[1])
+	url := os.Args[1]
+
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("%s", body)
 }
