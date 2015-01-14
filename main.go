@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 func main() {
@@ -21,12 +22,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	doc, err := html.Parse(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	defer res.Body.Close()
 
-	fmt.Printf("%s", body)
+	var printHrefs func(*html.Node)
+	printHrefs = func(node *html.Node) {
+		if node.Type == html.ElementNode && node.DataAtom == atom.A {
+			for _, attribute := range node.Attr {
+				if atom.Lookup([]byte(attribute.Key)) == atom.Href {
+					fmt.Println(attribute.Val)
+				}
+			}
+		}
+
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			printHrefs(child)
+		}
+	}
+
+	printHrefs(doc)
 }
