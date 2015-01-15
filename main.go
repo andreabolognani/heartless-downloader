@@ -59,8 +59,14 @@ func main() {
 	}
 
 	url := os.Args[1]
+	links := extractLinks(url, mp3Filter)
 
-	for _, l := range extractLinks(url, mp3Filter) {
-		fmt.Println(l)
+	if len(links) <= 0 {
+		die(2, fmt.Errorf("No song found, wrong URL?"))
+	} else {
+		fmt.Println("Found", len(links), "songs")
+		for i := range links {
+			fmt.Println(links[i])
+		}
 	}
 }
