@@ -13,6 +13,25 @@ func die(rc int, err error) {
 		os.Exit(rc)
 }
 
+func extractLinks(node *html.Node) (res []string) {
+	var do func(node *html.Node)
+	do = func(node *html.Node) {
+		if node.Type == html.ElementNode && node.DataAtom == atom.A {
+			for _, attribute := range node.Attr {
+				if atom.Lookup([]byte(attribute.Key)) == atom.Href {
+					res = append(res, attribute.Val)
+				}
+			}
+		}
+
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			do(child)
+		}
+	}
+	do(node)
+	return
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		die(1, fmt.Errorf("Usage: %s URL", os.Args[0]))
@@ -31,20 +50,7 @@ func main() {
 	}
 	defer res.Body.Close()
 
-	var printHrefs func(*html.Node)
-	printHrefs = func(node *html.Node) {
-		if node.Type == html.ElementNode && node.DataAtom == atom.A {
-			for _, attribute := range node.Attr {
-				if atom.Lookup([]byte(attribute.Key)) == atom.Href {
-					fmt.Println(attribute.Val)
-				}
-			}
-		}
-
-		for child := node.FirstChild; child != nil; child = child.NextSibling {
-			printHrefs(child)
-		}
+	for _, l := range extractLinks(doc) {
+		fmt.Println(l)
 	}
-
-	printHrefs(doc)
 }
