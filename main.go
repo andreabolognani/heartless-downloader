@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -15,8 +16,8 @@ func die(rc int, err error) {
 
 type linkFilterFunc func(string) (bool)
 
-func acceptFilter(string) (bool) {
-	return true
+func mp3Filter(s string) (bool) {
+	return strings.HasSuffix(s, ".mp3")
 }
 
 func extractLinks(url string, filter linkFilterFunc) (links []string) {
@@ -59,7 +60,7 @@ func main() {
 
 	url := os.Args[1]
 
-	for _, l := range extractLinks(url, acceptFilter) {
+	for _, l := range extractLinks(url, mp3Filter) {
 		fmt.Println(l)
 	}
 }
