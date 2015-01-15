@@ -13,32 +13,7 @@ func die(rc int, err error) {
 	os.Exit(rc)
 }
 
-func extractLinks(node *html.Node) (res []string) {
-	var do func(node *html.Node)
-	do = func(node *html.Node) {
-		if node.Type == html.ElementNode && node.DataAtom == atom.A {
-			for _, attribute := range node.Attr {
-				if atom.Lookup([]byte(attribute.Key)) == atom.Href {
-					res = append(res, attribute.Val)
-				}
-			}
-		}
-
-		for child := node.FirstChild; child != nil; child = child.NextSibling {
-			do(child)
-		}
-	}
-	do(node)
-	return
-}
-
-func main() {
-	if len(os.Args) < 2 {
-		die(1, fmt.Errorf("Usage: %s URL", os.Args[0]))
-	}
-
-	url := os.Args[1]
-
+func extractLinks(url string) (links []string) {
 	res, err := http.Get(url)
 	if err != nil {
 		die(2, err)
@@ -50,7 +25,33 @@ func main() {
 	}
 	defer res.Body.Close()
 
-	for _, l := range extractLinks(doc) {
+	var do func(node *html.Node)
+	do = func(node *html.Node) {
+		if node.Type == html.ElementNode && node.DataAtom == atom.A {
+			for _, attribute := range node.Attr {
+				if atom.Lookup([]byte(attribute.Key)) == atom.Href {
+					links = append(links, attribute.Val)
+				}
+			}
+		}
+
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			do(child)
+		}
+	}
+
+	do(doc)
+	return
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		die(1, fmt.Errorf("Usage: %s URL", os.Args[0]))
+	}
+
+	url := os.Args[1]
+
+	for _, l := range extractLinks(url) {
 		fmt.Println(l)
 	}
 }
