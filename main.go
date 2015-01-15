@@ -13,7 +13,13 @@ func die(rc int, err error) {
 	os.Exit(rc)
 }
 
-func extractLinks(url string) (links []string) {
+type linkFilterFunc func(string) (bool)
+
+func acceptFilter(string) (bool) {
+	return true
+}
+
+func extractLinks(url string, filter linkFilterFunc) (links []string) {
 	res, err := http.Get(url)
 	if err != nil {
 		die(2, err)
@@ -30,7 +36,9 @@ func extractLinks(url string) (links []string) {
 		if node.Type == html.ElementNode && node.DataAtom == atom.A {
 			for _, attribute := range node.Attr {
 				if atom.Lookup([]byte(attribute.Key)) == atom.Href {
-					links = append(links, attribute.Val)
+					if (filter(attribute.Val)) {
+						links = append(links, attribute.Val)
+					}
 				}
 			}
 		}
@@ -51,7 +59,7 @@ func main() {
 
 	url := os.Args[1]
 
-	for _, l := range extractLinks(url) {
+	for _, l := range extractLinks(url, acceptFilter) {
 		fmt.Println(l)
 	}
 }
