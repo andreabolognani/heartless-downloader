@@ -9,8 +9,8 @@ import (
 )
 
 func die(rc int, err error) {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(rc)
+	fmt.Fprintln(os.Stderr, err.Error())
+	os.Exit(rc)
 }
 
 func extractLinks(node *html.Node) (res []string) {
